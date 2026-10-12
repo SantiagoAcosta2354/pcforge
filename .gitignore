@@ -5,6 +5,7 @@
 /*
 !/.gitignore
 !/README.md
+!/render.yaml
 !/pcforge-usuarios/
 !/pcforge-catalogo/
 !/pcforge-compatibilidad/

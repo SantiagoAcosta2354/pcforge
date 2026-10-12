@@ -1,0 +1,136 @@
+# render.yaml
+# Despliegue del sistema PCForge en Render: cinco servicios web en un proyecto
+# nuevo, cada uno construido desde su propio Dockerfile.
+#
+# Decisiones que conviene entender antes de tocar este archivo:
+#
+# 1. El proyecto se declara con "projects" para que los cinco servicios nazcan
+#    agrupados en un espacio propio y no se mezclen con los recursos que ya
+#    existen en la cuenta.
+#
+# 2. No hay ninguna credencial escrita aqui. La cadena de MongoDB se pide al
+#    crear el Blueprint (sync: false) y el secreto JWT lo genera Render.
+#
+# 3. El secreto JWT es compartido y debe ser identico en los cuatro backends:
+#    la firma es simetrica. Por eso se genera UNA sola vez en pcforge-usuarios
+#    y los otros tres lo copian con fromService, en lugar de generar uno distinto
+#    por servicio (que romperia la validacion entre modulos).
+#
+# 4. Las URLs entre servicios se resuelven con RENDER_EXTERNAL_URL del servicio
+#    de destino, no con un nombre fijo: si Render tiene que añadir un sufijo al
+#    subdominio, el valor sigue siendo correcto.
+
+projects:
+  - name: pcforge
+    environments:
+      - name: produccion
+        services:
+          # ---------------------------------------------------------- usuarios
+          - type: web
+            name: pcforge-usuarios
+            runtime: docker
+            plan: free
+            rootDir: pcforge-usuarios
+            healthCheckPath: /actuator/health
+            envVars:
+              # Base de datos propia; la cadena se introduce al crear el Blueprint
+              - key: PCFORGE_MONGO_URI
+                sync: false
+              # Fuente unica del secreto compartido por los cuatro backends
+              - key: PCFORGE_JWT_SECRET
+                generateValue: true
+
+          # ---------------------------------------------------------- catalogo
+          - type: web
+            name: pcforge-catalogo
+            runtime: docker
+            plan: free
+            rootDir: pcforge-catalogo
+            healthCheckPath: /actuator/health
+            envVars:
+              - key: PCFORGE_MONGO_URI
+                sync: false
+              - key: PCFORGE_JWT_SECRET
+                fromService:
+                  type: web
+                  name: pcforge-usuarios
+                  envVarKey: PCFORGE_JWT_SECRET
+
+          # ---------------------------------------------------- compatibilidad
+          - type: web
+            name: pcforge-compatibilidad
+            runtime: docker
+            plan: free
+            rootDir: pcforge-compatibilidad
+            healthCheckPath: /actuator/health
+            envVars:
+              - key: PCFORGE_MONGO_URI
+                sync: false
+              - key: PCFORGE_JWT_SECRET
+                fromService:
+                  type: web
+                  name: pcforge-usuarios
+                  envVarKey: PCFORGE_JWT_SECRET
+              # El validador consulta el catalogo por API
+              - key: PCFORGE_CATALOGO_URL
+                fromService:
+                  type: web
+                  name: pcforge-catalogo
+                  envVarKey: RENDER_EXTERNAL_URL
+
+          # ----------------------------------------------------------- pedidos
+          - type: web
+            name: pcforge-pedidos
+            runtime: docker
+            plan: free
+            rootDir: pcforge-pedidos
+            healthCheckPath: /actuator/health
+            envVars:
+              - key: PCFORGE_MONGO_URI
+                sync: false
+              - key: PCFORGE_JWT_SECRET
+                fromService:
+                  type: web
+                  name: pcforge-usuarios
+                  envVarKey: PCFORGE_JWT_SECRET
+              - key: PCFORGE_CATALOGO_URL
+                fromService:
+                  type: web
+                  name: pcforge-catalogo
+                  envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_COMPATIBILIDAD_URL
+                fromService:
+                  type: web
+                  name: pcforge-compatibilidad
+                  envVarKey: RENDER_EXTERNAL_URL
+
+          # --------------------------------------------------------------- web
+          # Sin base de datos y sin secreto propio: reenvia el token del usuario.
+          # Por eso aqui lo unico que hace falta es saber donde estan los demas.
+          - type: web
+            name: pcforge-web
+            runtime: docker
+            plan: free
+            rootDir: pcforge-web
+            healthCheckPath: /actuator/health
+            envVars:
+              - key: PCFORGE_USUARIOS_URL
+                fromService:
+                  type: web
+                  name: pcforge-usuarios
+                  envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_CATALOGO_URL
+                fromService:
+                  type: web
+                  name: pcforge-catalogo
+                  envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_COMPATIBILIDAD_URL
+                fromService:
+                  type: web
+                  name: pcforge-compatibilidad
+                  envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_PEDIDOS_URL
+                fromService:
+                  type: web
+                  name: pcforge-pedidos
+                  envVarKey: RENDER_EXTERNAL_URL
