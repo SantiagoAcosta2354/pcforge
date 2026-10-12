@@ -5,6 +5,6 @@ target
 .classpath
 .project
 .factorypath
-config
+/config
 *.md
 !README.md

@@ -32,8 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 
-# Configuracion local con credenciales (nunca al repositorio)
-config/
+
 
 # Configuracion local con credenciales (nunca al repositorio)
-config/
+/config/
