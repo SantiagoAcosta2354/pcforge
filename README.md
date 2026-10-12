@@ -85,10 +85,15 @@ la base esta vacia:
 
 | Correo | Rol | Contrasena |
 |---|---|---|
-| `admin@pcforge.co` | ADMIN | `Admin1234*` |
+| `admin@pcforge.co` | ADMIN | La define quien despliega: define `PCFORGE_ADMIN_PASSWORD` antes del primer arranque |
 | `asesor@pcforge.co` | ASESOR | `Demo1234*` |
 | `tecnico@pcforge.co` | TECNICO | `Demo1234*` |
 | `cliente@pcforge.co` | CLIENTE | `Demo1234*` |
+
+La cuenta de administrador no lleva contrasena por defecto publicada: al desplegar
+en un entorno accesible desde internet hay que fijar `PCFORGE_ADMIN_PASSWORD` o,
+si la base ya existe, cambiarla desde la propia aplicacion
+(`PATCH /api/v1/users/me/password`).
 
 Con los cinco arriba, la aplicacion esta en **http://localhost:8080**.
 Cada backend publica su API en `/swagger-ui.html` y su estado en `/actuator/health`.

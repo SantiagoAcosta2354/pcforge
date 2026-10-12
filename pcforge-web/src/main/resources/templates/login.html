@@ -19,6 +19,11 @@
 
                     <div class="alert alert-danger" th:if="${param.error}">
                         El correo o la contrasena no son correctos.
+                        <span class="d-block mt-2">
+                            Si el sistema lleva un rato sin uso, los servicios se suspenden para
+                            ahorrar recursos y tardan hasta dos minutos en despertar. En ese caso
+                            basta con esperar unos segundos y volver a intentarlo.
+                        </span>
                     </div>
 
                     <form th:action="@{/login}" method="post">
@@ -48,7 +53,7 @@
                     <details class="small text-muted">
                         <summary class="mb-2">Cuentas de demostracion</summary>
                         <ul class="mb-0 ps-3">
-                            <li><code>admin@pcforge.co</code> / <code>Admin1234*</code> (administrador)</li>
+                            <li><code>admin@pcforge.co</code> (administrador) &mdash; su contrasena no se publica: la define el responsable del sistema</li>
                             <li><code>asesor@pcforge.co</code> / <code>Demo1234*</code> (asesor comercial)</li>
                             <li><code>tecnico@pcforge.co</code> / <code>Demo1234*</code> (tecnico)</li>
                             <li><code>cliente@pcforge.co</code> / <code>Demo1234*</code> (cliente)</li>

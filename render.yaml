@@ -10,6 +10,9 @@
 #
 # 2. No hay ninguna credencial escrita aqui. La cadena de MongoDB se pide al
 #    crear el Blueprint (sync: false) y el secreto JWT lo genera Render.
+#    OJO: en las sincronizaciones del Blueprint Render NO muestra esos campos,
+#    asi que los servicios nuevos nacen sin la variable y hay que escribirla a
+#    mano en cada uno desde el panel.
 #
 # 3. El secreto JWT es compartido y debe ser identico en los cuatro backends:
 #    la firma es simetrica. Por eso se genera UNA sola vez en pcforge-usuarios
@@ -18,7 +21,14 @@
 #
 # 4. Las URLs entre servicios se resuelven con RENDER_EXTERNAL_URL del servicio
 #    de destino, no con un nombre fijo: si Render tiene que añadir un sufijo al
-#    subdominio, el valor sigue siendo correcto.
+#    subdominio, el valor sigue siendo correcto. Ademas los servicios gratuitos
+#    no pueden recibir trafico de red privada, asi que la publica es la unica via.
+#
+# 5. Los tiempos de espera se suben muy por encima de su valor por defecto. En el
+#    plan gratuito un servicio suspendido tarda alrededor de dos minutos en
+#    despertar; con los valores de desarrollo (5 y 6 segundos en los servicios
+#    internos, 60 en la capa web) la peticion se abandonaba antes de que el
+#    servicio despertara y el usuario veia un error que parecia su culpa.
 
 projects:
   - name: pcforge
@@ -77,6 +87,8 @@ projects:
                   type: web
                   name: pcforge-catalogo
                   envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_CATALOGO_TIMEOUT_MS
+                value: 150000
 
           # ----------------------------------------------------------- pedidos
           - type: web
@@ -103,6 +115,8 @@ projects:
                   type: web
                   name: pcforge-compatibilidad
                   envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_DOWNSTREAM_TIMEOUT_MS
+                value: 150000
 
           # --------------------------------------------------------------- web
           # Sin base de datos y sin secreto propio: reenvia el token del usuario.
@@ -134,3 +148,5 @@ projects:
                   type: web
                   name: pcforge-pedidos
                   envVarKey: RENDER_EXTERNAL_URL
+              - key: PCFORGE_DOWNSTREAM_TIMEOUT_MS
+                value: 180000
