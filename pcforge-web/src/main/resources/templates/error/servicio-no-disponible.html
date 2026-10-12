@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Servicio no disponible')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-body text-center p-4">
+                    <h1 class="h4 fw-bold">Un servicio no esta respondiendo</h1>
+                    <p class="text-muted mt-3" th:text="${mensaje}">
+                        No fue posible comunicarse con uno de los microservicios.
+                    </p>
+                    <p class="text-muted small">
+                        Cuando la aplicacion lleva un rato sin uso, el proveedor de nube suspende los
+                        servicios para ahorrar recursos y la primera peticion tarda en despertarlos.
+                        Espere unos segundos y vuelva a intentarlo.
+                    </p>
+                    <a class="btn btn-primary mt-2" th:href="@{/}">Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

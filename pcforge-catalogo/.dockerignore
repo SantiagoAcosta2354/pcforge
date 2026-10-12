@@ -1,0 +1,9 @@
+target
+.git
+.gitignore
+.settings
+.classpath
+.project
+.factorypath
+*.md
+!README.md

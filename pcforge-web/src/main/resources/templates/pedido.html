@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedido ' + ${pedido.orderNumber})}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1" th:text="'Pedido ' + ${pedido.orderNumber}">Pedido</h1>
+            <p class="text-muted mb-0 small">
+                Registrado el
+                <span th:text="${pedido.createdAt != null ? #temporals.format(pedido.createdAt, 'dd/MM/yyyy HH:mm') : '-'}"></span>
+            </p>
+        </div>
+        <div class="text-end">
+            <span class="badge fs-6"
+                  th:classappend="'text-bg-' + ${colorEstado.getOrDefault(pedido.status, 'secondary')}"
+                  th:text="${etiquetasEstado.getOrDefault(pedido.status, pedido.status)}">Estado</span>
+            <div class="small text-muted mt-2">
+                <a th:href="@{/pedidos}">Volver a la lista</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+
+            <!-- Componentes cotizados -->
+            <div class="card mb-4">
+                <div class="card-header bg-white fw-semibold">Componentes del equipo</div>
+                <div class="table-responsive">
+                    <table class="table table-sm datos mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Componente</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio unitario</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="i : ${pedido.items}">
+                            <td class="small text-muted"
+                                th:text="${etiquetasComponente.getOrDefault(i.componentType, i.componentType)}">Tipo</td>
+                            <td>
+                                <div class="small fw-semibold" th:text="${i.name}">Componente</div>
+                                <div class="text-muted small" th:text="${i.sku}">SKU</div>
+                            </td>
+                            <td class="text-center" th:text="${i.quantity}">1</td>
+                            <td class="text-end"
+                                th:text="'$ ' + ${#numbers.formatDecimal(i.unitPrice, 1, 'POINT', 0, 'COMMA')}">$ 0</td>
+                            <td class="text-end"
+                                th:text="'$ ' + ${#numbers.formatDecimal(i.lineTotal, 1, 'POINT', 0, 'COMMA')}">$ 0</td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">Total</th>
+                            <th class="text-end"
+                                th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 0, 'COMMA')}">$ 0</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="card-footer bg-white small text-muted">
+                    Los precios corresponden al momento en que se registro la solicitud.
+                    <span th:if="${pedido.compatibilityResult != null}">
+                        Resultado de compatibilidad registrado:
+                        <span class="fw-semibold"
+                              th:text="${etiquetasResultado.getOrDefault(pedido.compatibilityResult, pedido.compatibilityResult)}"></span>.
+                    </span>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="card mb-4">
+                <div class="card-header bg-white fw-semibold">Observaciones de seguimiento</div>
+                <div class="card-body">
+                    <p class="text-muted small" th:if="${pedido.observations.isEmpty()}">
+                        Todavia no hay observaciones registradas.
+                    </p>
+                    <div class="border-start ps-3 mb-3" th:each="o : ${pedido.observations}">
+                        <div class="small" th:text="${o.text}">Observacion</div>
+                        <div class="text-muted small">
+                            <span th:text="${o.authorName}">Autor</span> ·
+                            <span th:text="${o.authorRole}">Rol</span> ·
+                            <span th:text="${o.createdAt != null ? #temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm') : ''}"></span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary small mb-0" th:if="${pedido.status == 'ENTREGADO' or pedido.status == 'CANCELADO'}">
+                        El pedido esta <span th:text="${etiquetasEstado.getOrDefault(pedido.status, pedido.status)}"></span>
+                        y ya no admite nuevas observaciones.
+                    </div>
+                    <form th:action="@{'/pedidos/' + ${pedido.id} + '/observacion'}" method="post"
+                          th:if="${puedeCambiarEstado and pedido.status != 'ENTREGADO' and pedido.status != 'CANCELADO'}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-2">
+                            <label class="form-label small" for="text">Nueva observacion</label>
+                            <textarea class="form-control" id="text" name="text" rows="2" maxlength="400"
+                                      required placeholder="por ejemplo, se verifico el armado"></textarea>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary" type="submit">Agregar observacion</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+
+            <!-- Datos del cliente -->
+            <div class="card mb-4">
+                <div class="card-header bg-white fw-semibold">Cliente</div>
+                <div class="card-body small">
+                    <div class="fw-semibold" th:text="${pedido.customerName}">Nombre</div>
+                    <div class="text-muted" th:text="${pedido.customerEmail}">correo</div>
+                    <hr/>
+                    <div class="text-muted">Observacion del cliente al solicitar</div>
+                    <div th:text="${pedido.customerNote != null and !pedido.customerNote.isBlank() ? pedido.customerNote : 'Sin observaciones'}">-</div>
+                    <hr/>
+                    <div class="text-muted">Tecnico asignado</div>
+                    <div th:text="${pedido.assignedTechnicianName != null ? pedido.assignedTechnicianName : 'Aun sin asignar'}">-</div>
+                </div>
+            </div>
+
+            <!-- Acciones de cambio de estado -->
+            <div class="card mb-4" th:if="${puedeCambiarEstado and !pedido.allowedNextStatuses.isEmpty()}">
+                <div class="card-header bg-white fw-semibold">Cambiar el estado</div>
+                <div class="card-body">
+                    <form th:action="@{'/pedidos/' + ${pedido.id} + '/estado'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label small" for="status">Nuevo estado</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option th:each="e : ${pedido.allowedNextStatuses}" th:value="${e}"
+                                        th:text="${etiquetasEstado.getOrDefault(e, e)}">Estado</option>
+                            </select>
+                            <div class="form-text">
+                                Solo aparecen los estados a los que puede pasar este pedido segun su estado actual.
+                            </div>
+                        </div>
+
+                        <div class="mb-3" th:if="${tecnicos != null}">
+                            <label class="form-label small" for="technicianId">Tecnico que asume el ensamblaje</label>
+                            <select class="form-select" id="technicianId" name="technicianId">
+                                <option value="">Sin asignar</option>
+                                <option th:each="t : ${tecnicos}" th:value="${t.id}" th:text="${t.fullName}">Tecnico</option>
+                            </select>
+                            <div class="form-text">Se usa cuando el pedido entra a la linea de ensamblaje.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small" for="note">Observacion del cambio</label>
+                            <textarea class="form-control" id="note" name="note" rows="2" maxlength="400"
+                                      placeholder="motivo o detalle del cambio"></textarea>
+                        </div>
+
+                        <button class="btn btn-primary w-100" type="submit">Aplicar cambio</button>
+                    </form>
+
+                    <div class="alert alert-warning small mt-3 mb-0">
+                        Al pasar a <span class="fw-semibold">En ensamblaje</span> se descuentan las existencias
+                        de los componentes en el catalogo. Si el inventario no se puede actualizar, el cambio
+                        no se aplica.
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-secondary small" th:if="${puedeCambiarEstado and pedido.allowedNextStatuses.isEmpty()}">
+                El pedido esta <span th:text="${etiquetasEstado.getOrDefault(pedido.status, pedido.status)}"></span>
+                y no admite mas cambios de estado.
+            </div>
+
+            <!-- Historial -->
+            <div class="card">
+                <div class="card-header bg-white fw-semibold">Historial de estados</div>
+                <div class="card-body">
+                    <ul class="linea-tiempo mb-0">
+                        <li th:each="h : ${pedido.history}">
+                            <div class="small fw-semibold">
+                                <span th:text="${h.from != null ? etiquetasEstado.getOrDefault(h.from, h.from) : 'Inicio'}"></span>
+                                &rarr;
+                                <span th:text="${etiquetasEstado.getOrDefault(h.to, h.to)}"></span>
+                            </div>
+                            <div class="text-muted small" th:text="${h.changedByName}">Responsable</div>
+                            <div class="text-muted small"
+                                 th:text="${h.changedAt != null ? #temporals.format(h.changedAt, 'dd/MM/yyyy HH:mm') : ''}"></div>
+                            <div class="small" th:if="${h.note != null and !h.note.isBlank()}" th:text="${h.note}"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

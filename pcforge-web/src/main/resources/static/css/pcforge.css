@@ -1,0 +1,81 @@
+/* Ajustes propios sobre Bootstrap. Se mantienen al minimo: la idea es no
+   reemplazar el marco de trabajo, solo darle identidad a algunas secciones. */
+
+.hero {
+    background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
+    color: #f8fafc;
+    padding: 3.5rem 0;
+}
+
+.hero .lead {
+    color: #cbd5e1;
+}
+
+.tarjeta-producto {
+    height: 100%;
+    transition: transform .12s ease-in-out, box-shadow .12s ease-in-out;
+}
+
+.tarjeta-producto:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(15, 23, 42, .15);
+}
+
+.precio {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.especificaciones {
+    font-size: .82rem;
+}
+
+.paso {
+    border-left: 3px solid #0ea5e9;
+    padding-left: .9rem;
+}
+
+.paso-numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: #0ea5e9;
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.linea-tiempo {
+    list-style: none;
+    padding-left: 1rem;
+}
+
+.linea-tiempo li {
+    border-left: 2px solid #cbd5e1;
+    padding-left: 1rem;
+    padding-bottom: 1rem;
+    position: relative;
+}
+
+.linea-tiempo li::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: .35rem;
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    background: #0ea5e9;
+}
+
+.linea-tiempo li:last-child {
+    border-left-color: transparent;
+}
+
+table.datos td,
+table.datos th {
+    vertical-align: middle;
+}

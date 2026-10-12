@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Catalogo')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-0">Catalogo de componentes</h1>
+            <p class="text-muted mb-0">
+                <span th:text="${productos.size()}">0</span> productos disponibles
+            </p>
+        </div>
+        <a class="btn btn-outline-primary" th:href="@{/armar}" th:if="${usuario != null}">Ir al armado</a>
+    </div>
+
+    <form class="card card-body mb-4" method="get" th:action="@{/catalogo}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label" for="buscar">Buscar por nombre</label>
+                <input class="form-control" id="buscar" name="buscar" type="search"
+                       th:value="${busqueda}" placeholder="por ejemplo, memoria"/>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="categoria">Categoria</label>
+                <select class="form-select" id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    <option th:each="c : ${categorias}" th:value="${c.id}"
+                            th:text="${c.name}"
+                            th:selected="${categoriaSeleccionada != null and categoriaSeleccionada == c.id}">
+                        Categoria
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="tipo">Tipo de componente</label>
+                <select class="form-select" id="tipo" name="tipo">
+                    <option value="">Todos</option>
+                    <option th:each="t : ${etiquetasComponente}" th:value="${t.key}"
+                            th:text="${t.value}"
+                            th:selected="${tipoSeleccionado != null and tipoSeleccionado == t.key}">
+                        Tipo
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-primary" type="submit">Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="row g-3" th:if="${!productos.isEmpty()}">
+        <div class="col-sm-6 col-lg-4" th:each="p : ${productos}">
+            <div class="card tarjeta-producto">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge text-bg-light"
+                              th:text="${etiquetasComponente.getOrDefault(p.componentType, p.componentType)}">Tipo</span>
+                        <span class="badge text-bg-danger" th:if="${!p.available}"
+                              th:text="${p.active ? 'Sin existencias' : 'Inactivo'}">Estado</span>
+                        <span class="badge text-bg-warning text-dark"
+                              th:if="${p.available and p.lowStock}">Ultimas unidades</span>
+                    </div>
+
+                    <h2 class="h6 fw-bold mb-1" th:text="${p.name}">Producto</h2>
+                    <p class="text-muted small mb-2" th:text="${p.brand}">Marca</p>
+
+                    <ul class="list-unstyled especificaciones text-muted mb-3">
+                        <li th:if="${p.specs != null and p.specs.socket != null}">
+                            Socket: <span class="text-dark" th:text="${p.specs.socket}"></span>
+                        </li>
+                        <li th:if="${p.specs != null and p.specs.ramType != null}">
+                            Tipo de memoria: <span class="text-dark" th:text="${p.specs.ramType}"></span>
+                        </li>
+                        <li th:if="${p.specs != null and p.specs.ramTypeSupported != null}">
+                            Admite: <span class="text-dark"
+                                          th:text="${#strings.listJoin(p.specs.ramTypeSupported, ', ')}"></span>
+                        </li>
+                        <li th:if="${p.specs != null and p.specs.capacityW != null}">
+                            Capacidad: <span class="text-dark" th:text="${p.specs.capacityW} + ' W'"></span>
+                        </li>
+                        <li th:if="${p.specs != null and p.specs.estimatedPowerW != null}">
+                            Consumo estimado: <span class="text-dark"
+                                                     th:text="${p.specs.estimatedPowerW} + ' W'"></span>
+                        </li>
+                        <li>SKU: <span class="text-dark" th:text="${p.sku}"></span></li>
+                        <li>Existencia: <span class="text-dark" th:text="${p.stock}"></span> unidades</li>
+                    </ul>
+
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="precio"
+                              th:text="'$ ' + ${#numbers.formatDecimal(p.price, 1, 'POINT', 0, 'COMMA')}">$ 0</span>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               th:href="@{'/catalogo/' + ${p.id}}">Detalle</a>
+                            <form th:action="@{/armar/agregar}" method="post" th:if="${usuario != null}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <input type="hidden" name="productId" th:value="${p.id}"/>
+                                <button class="btn btn-sm btn-primary" type="submit"
+                                        th:disabled="${!p.available}">Agregar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info" th:if="${productos.isEmpty()}">
+        No se encontraron productos con esos criterios. Pruebe quitando los filtros.
+    </div>
+
+    <div class="alert alert-secondary mt-4" th:if="${usuario == null}">
+        Para armar un equipo y solicitar una cotizacion necesita
+        <a th:href="@{/login}">iniciar sesion</a> o
+        <a th:href="@{/registro}">crear una cuenta</a>.
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

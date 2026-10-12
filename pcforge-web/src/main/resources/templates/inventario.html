@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inventario')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <h1 class="h3 fw-bold mb-1">Inventario</h1>
+    <p class="text-muted">
+        Control de existencias del catalogo. Cada movimiento queda registrado con su responsable.
+    </p>
+
+    <div class="alert alert-warning d-flex justify-content-between align-items-center"
+         th:if="${!alertas.isEmpty()}">
+        <div>
+            <span class="fw-semibold" th:text="${alertas.size()}">0</span>
+            productos alcanzaron su existencia minima.
+        </div>
+        <span class="small">Revise la columna de existencia.</span>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover datos mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Tipo</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-center">Existencia</th>
+                    <th class="text-center">Minimo</th>
+                    <th>Estado</th>
+                    <th style="min-width: 20rem;">Registrar movimiento</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${productos}">
+                    <td>
+                        <div class="small fw-semibold" th:text="${p.name}">Producto</div>
+                        <div class="text-muted small" th:text="${p.sku}">SKU</div>
+                    </td>
+                    <td class="small text-muted"
+                        th:text="${etiquetasComponente.getOrDefault(p.componentType, p.componentType)}">Tipo</td>
+                    <td class="text-end"
+                        th:text="'$ ' + ${#numbers.formatDecimal(p.price, 1, 'POINT', 0, 'COMMA')}">$ 0</td>
+                    <td class="text-center fw-semibold">
+                        <span th:text="${p.stock}">0</span>
+                        <span class="badge text-bg-warning text-dark ms-1" th:if="${p.lowStock}">minimo</span>
+                    </td>
+                    <td class="text-center text-muted" th:text="${p.minimumStock}">0</td>
+                    <td>
+                        <span class="badge text-bg-success" th:if="${p.active}">Activo</span>
+                        <span class="badge text-bg-secondary" th:if="${!p.active}">Inactivo</span>
+                    </td>
+                    <td>
+                        <form class="row g-1 align-items-center" method="post"
+                              th:action="@{'/inventario/' + ${p.id} + '/movimiento'}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div class="col-4">
+                                <select class="form-select form-select-sm" name="movementType" required>
+                                    <option value="ENTRADA">Entrada</option>
+                                    <option value="SALIDA">Salida</option>
+                                    <option value="AJUSTE">Ajuste</option>
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <input class="form-control form-control-sm" name="quantity" type="number"
+                                       min="1" value="1" required/>
+                            </div>
+                            <div class="col-4">
+                                <input class="form-control form-control-sm" name="reason" type="text"
+                                       maxlength="200" placeholder="motivo"/>
+                            </div>
+                            <div class="col-2 d-grid">
+                                <button class="btn btn-sm btn-primary" type="submit">Aplicar</button>
+                            </div>
+                        </form>
+                        <div class="form-text mb-0">
+                            Una salida no puede dejar la existencia en negativo.
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        El alta y la edicion de productos se realiza desde la documentacion de la API del
+        microservicio de catalogo, que expone las operaciones con sus contratos OpenAPI.
+    </p>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

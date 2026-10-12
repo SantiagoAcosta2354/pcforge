@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Acceso denegado')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 text-center">
+            <div class="display-4 fw-bold text-secondary">403</div>
+            <h1 class="h4 fw-bold mt-3">Su perfil no tiene acceso a esta seccion</h1>
+            <p class="text-muted">
+                Cada perfil de PCForge accede unicamente a las funciones que le corresponden.
+                Si cree que se trata de un error, contacte al administrador de la tienda.
+            </p>
+            <a class="btn btn-primary mt-2" th:href="@{/}">Volver al inicio</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

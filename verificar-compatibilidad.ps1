@@ -1,0 +1,73 @@
+# verificar-compatibilidad.ps1
+# Comprueba el motor de reglas contra el catalogo cargado, con los casos que el
+# sistema debe saber distinguir: compatible, incompatible, no concluyente y
+# falta de datos. Usa la cuenta de cliente de demostracion y borra despues las
+# configuraciones que crea, para no dejar residuos.
+#
+# Uso: powershell -ExecutionPolicy Bypass -File C:\workspace-sts\verificar-compatibilidad.ps1
+
+$ErrorActionPreference = 'Stop'
+
+$UsuariosUrl = 'http://localhost:8081'
+$CatalogoUrl = 'http://localhost:8082'
+$CompatUrl   = 'http://localhost:8083'
+
+function Send-Json {
+    param([string]$Method, [string]$Url, [string]$Token, $Body)
+    $headers = @{}
+    if ($Token) { $headers['Authorization'] = "Bearer $Token" }
+    $json = if ($null -eq $Body) { '' } else { $Body | ConvertTo-Json -Depth 8 -Compress }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    return Invoke-RestMethod -Method $Method -Uri $Url -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $bytes
+}
+
+# --- Catalog: mapa SKU -> id -------------------------------------------------
+$productos = @{}
+foreach ($p in (Invoke-RestMethod -Uri "$CatalogoUrl/api/v1/products?includeInactive=true" -TimeoutSec 20)) { $productos[$p.sku] = $p.id }
+
+# --- Sesion de cliente -------------------------------------------------------
+$login = Send-Json -Method Post -Url "$UsuariosUrl/api/v1/auth/login" -Body @{ email = 'cliente@pcforge.co'; password = 'Demo1234*' }
+$token = if ($login.token) { $login.token } else { $login.accessToken }
+
+$casos = @(
+    @{ nombre = 'A. Armado coherente en AM5';                          skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060','SSD-NVME-1TB','COOL-AIR-150');             esperado = 'OK' }
+    @{ nombre = 'B. Socket distinto';                                  skus = @('CPU-LGA1851-2450','MB-AM5-ITX');                                                                          esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'C. Memoria DDR5 en placa DDR4';                       skus = @('CPU-AM4-5700','MB-AM4-DDR4','RAM-DDR5-32');                                                               esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'D. Fuente insuficiente para 1470 + 4090';             skus = @('CPU-LGA1700-1470','MB-LGA1700-DDR4','RAM-DDR4-16','GPU-RTX-4090','PSU-450W-BAS');                         esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'E. Grafica sin consumo declarado';                    skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','GPU-OEM-IND','PSU-650W-80P');                                   esperado = 'NO_CONCLUYENTE' }
+    @{ nombre = 'F. Placa sin tipos de memoria publicados';            skus = @('CPU-AM5-8600','MB-AM5-SIN-RAM','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060');                              esperado = 'NO_CONCLUYENTE' }
+    @{ nombre = 'G. Accesorio sin atributos tecnicos';                 skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060','ACC-CABLES-KIT');                 esperado = 'OK' }
+)
+
+$creadas = @()
+$fallos = 0
+"{0,-46} {1,-16} {2,-16} {3}" -f 'CASO','ESPERADO','OBTENIDO','DETALLE'
+'-' * 118
+
+foreach ($caso in $casos) {
+    $cfg = Send-Json -Method Post -Url "$CompatUrl/api/v1/configurations" -Token $token -Body @{ name = $caso.nombre }
+    $creadas += $cfg.id
+
+    foreach ($sku in $caso.skus) {
+        $payload = @{ productId = $productos[$sku]; quantity = 1 }
+        $null = Send-Json -Method Post -Url "$CompatUrl/api/v1/configurations/$($cfg.id)/items" -Token $token -Body $payload
+    }
+
+    $res = Send-Json -Method Post -Url "$CompatUrl/api/v1/configurations/$($cfg.id)/validate" -Token $token
+    $obtenido = $res.result
+    $ok = ($obtenido -eq $caso.esperado)
+    if (-not $ok) { $fallos++ }
+
+    $detalle = ($res.checks | ForEach-Object { "$($_.rule)=$($_.status)" }) -join ' '
+    $marca = if ($ok) { '[OK]  ' } else { '[FALLA]' }
+    "{0} {1,-38} {2,-16} {3,-16} {4}" -f $marca, $caso.nombre.Substring(3), $caso.esperado, $obtenido, $detalle
+}
+
+# --- Limpieza de las configuraciones de prueba -------------------------------
+foreach ($id in $creadas) {
+    $null = Send-Json -Method Delete -Url "$CompatUrl/api/v1/configurations/$id" -Token $token
+}
+
+''
+if ($fallos -eq 0) { "Resultado: los $($casos.Count) casos dieron el veredicto esperado. Configuraciones de prueba eliminadas." }
+else { "Resultado: $fallos de $($casos.Count) casos no coincidieron." }

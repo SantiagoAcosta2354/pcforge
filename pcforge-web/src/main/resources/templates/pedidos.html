@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedidos')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-end mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-0">Pedidos y solicitudes</h1>
+            <p class="text-muted mb-0" th:if="${!esPersonal}">
+                Estas son sus solicitudes y su estado actual.
+            </p>
+            <p class="text-muted mb-0" th:if="${esPersonal}">
+                Como personal de la tienda puede ver las solicitudes de todos los clientes.
+            </p>
+        </div>
+        <a class="btn btn-outline-primary" th:href="@{/armar}">Armar un equipo</a>
+    </div>
+
+    <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/pedidos}">
+        <div class="col-sm-4 col-md-3">
+            <label class="form-label small" for="estado">Filtrar por estado</label>
+            <select class="form-select form-select-sm" id="estado" name="estado">
+                <option value="">Todos</option>
+                <option th:each="e : ${etiquetasEstado}" th:value="${e.key}" th:text="${e.value}"
+                        th:selected="${estadoSeleccionado != null and estadoSeleccionado == e.key}">Estado</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-sm btn-primary" type="submit">Aplicar</button>
+        </div>
+    </form>
+
+    <div class="card" th:if="${!pedidos.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-hover datos mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Pedido</th>
+                    <th th:if="${esPersonal}">Cliente</th>
+                    <th>Registrado</th>
+                    <th class="text-center">Componentes</th>
+                    <th class="text-end">Total</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pedidos}">
+                    <td class="fw-semibold" th:text="${p.orderNumber}">PF-000001</td>
+                    <td th:if="${esPersonal}">
+                        <div class="small" th:text="${p.customerName}">Cliente</div>
+                        <div class="text-muted small" th:text="${p.customerEmail}">correo</div>
+                    </td>
+                    <td class="small text-muted"
+                        th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td class="text-center" th:text="${p.items.size()}">0</td>
+                    <td class="text-end"
+                        th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 0, 'COMMA')}">$ 0</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="'text-bg-' + ${colorEstado.getOrDefault(p.status, 'secondary')}"
+                              th:text="${etiquetasEstado.getOrDefault(p.status, p.status)}">Estado</span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary"
+                           th:href="@{'/pedidos/' + ${p.id}}">Ver</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="alert alert-info" th:if="${pedidos.isEmpty()}">
+        Todavia no hay pedidos que mostrar. Arme un equipo y registre su solicitud de cotizacion.
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

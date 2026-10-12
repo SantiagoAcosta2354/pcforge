@@ -1,0 +1,40 @@
+# Raiz del monorepo PCForge.
+#
+# En esta carpeta conviven otros proyectos ajenos al sistema, asi que se ignora
+# todo por defecto y se habilita explicitamente lo que forma parte de PCForge.
+/*
+!/.gitignore
+!/README.md
+!/pcforge-usuarios/
+!/pcforge-catalogo/
+!/pcforge-compatibilidad/
+!/pcforge-pedidos/
+!/pcforge-web/
+!/arrancar-pcforge.ps1
+!/cargar-catalogo.ps1
+!/verificar-compatibilidad.ps1
+
+# --- Credenciales: nunca al repositorio ---
+# Cada microservicio lee ./config/application.properties, que contiene la cadena
+# de conexion a MongoDB Atlas con su contrasena y el secreto JWT compartido.
+# En produccion esas dos cosas se inyectan como variables de entorno.
+**/config/application.properties
+
+# --- Artefactos de compilacion ---
+target/
+*.class
+
+# --- Entorno Eclipse / Spring Tool Suite ---
+.metadata/
+.factorypath
+.settings/
+.classpath
+.project
+
+# --- Varios ---
+*.zip
+*.log
+
+# --- Local ---
+.env
+*.local

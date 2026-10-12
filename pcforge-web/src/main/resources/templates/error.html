@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 text-center">
+            <div class="display-4 fw-bold text-secondary"
+                 th:text="${status != null ? status : 'Error'}">Error</div>
+            <h1 class="h4 fw-bold mt-3">Algo no salio como esperabamos</h1>
+            <p class="text-muted">
+                La operacion no pudo completarse. Puede volver al inicio e intentarlo de nuevo.
+            </p>
+            <p class="text-muted small" th:if="${path != null}">
+                Ruta solicitada: <code th:text="${path}"></code>
+            </p>
+            <a class="btn btn-primary mt-2" th:href="@{/}">Volver al inicio</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
