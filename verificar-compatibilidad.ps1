@@ -30,13 +30,13 @@ $login = Send-Json -Method Post -Url "$UsuariosUrl/api/v1/auth/login" -Body @{ e
 $token = if ($login.token) { $login.token } else { $login.accessToken }
 
 $casos = @(
-    @{ nombre = 'A. Armado coherente en AM5';                          skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060','SSD-NVME-1TB','COOL-AIR-150');             esperado = 'OK' }
-    @{ nombre = 'B. Socket distinto';                                  skus = @('CPU-LGA1851-2450','MB-AM5-ITX');                                                                          esperado = 'INCOMPATIBLE' }
-    @{ nombre = 'C. Memoria DDR5 en placa DDR4';                       skus = @('CPU-AM4-5700','MB-AM4-DDR4','RAM-DDR5-32');                                                               esperado = 'INCOMPATIBLE' }
-    @{ nombre = 'D. Fuente insuficiente para 1470 + 4090';             skus = @('CPU-LGA1700-1470','MB-LGA1700-DDR4','RAM-DDR4-16','GPU-RTX-4090','PSU-450W-BAS');                         esperado = 'INCOMPATIBLE' }
-    @{ nombre = 'E. Grafica sin consumo declarado';                    skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','GPU-OEM-IND','PSU-650W-80P');                                   esperado = 'NO_CONCLUYENTE' }
-    @{ nombre = 'F. Placa sin tipos de memoria publicados';            skus = @('CPU-AM5-8600','MB-AM5-SIN-RAM','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060');                              esperado = 'NO_CONCLUYENTE' }
-    @{ nombre = 'G. Accesorio sin atributos tecnicos';                 skus = @('CPU-AM5-8600','MB-AM5-ITX','RAM-DDR5-32','PSU-650W-80P','GPU-RTX-4060','ACC-CABLES-KIT');                 esperado = 'OK' }
+    @{ nombre = 'A. Armado coherente en AM5';                          skus = @('CPU-RYZEN5-7600X','MB-B650-P-WIFI','RAM-DDR5-32-6000','PSU-650W-BRONZE','GPU-RTX4060-8G','SSD-990PRO-1TB','COOL-HYPER212');             esperado = 'OK' }
+    @{ nombre = 'B. Socket distinto';                                  skus = @('CPU-ULTRA7-265K','MB-B650-P-WIFI');                                                                          esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'C. Memoria DDR5 en placa DDR4';                       skus = @('CPU-RYZEN7-5700X','MB-B550M-PRO-VDH','RAM-DDR5-32-6000');                                                               esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'D. Fuente insuficiente para i9-14900K y RTX 4090';             skus = @('CPU-I9-14900K','MB-B760M-DS3H','RAM-DDR4-16-3200','GPU-RTX4090-24G','PSU-650W-BRONZE');                         esperado = 'INCOMPATIBLE' }
+    @{ nombre = 'E. Grafica sin consumo declarado';                    skus = @('CPU-RYZEN5-7600X','MB-B650-P-WIFI','RAM-DDR5-32-6000','GPU-OEM-SIN-CONSUMO','PSU-650W-BRONZE');                                   esperado = 'NO_CONCLUYENTE' }
+    @{ nombre = 'F. Placa sin tipos de memoria publicados';            skus = @('CPU-RYZEN5-7600X','MB-OEM-SIN-RAM','RAM-DDR5-32-6000','PSU-650W-BRONZE','GPU-RTX4060-8G');                              esperado = 'NO_CONCLUYENTE' }
+    @{ nombre = 'G. Accesorio sin atributos tecnicos';                 skus = @('CPU-RYZEN5-7600X','MB-B650-P-WIFI','RAM-DDR5-32-6000','PSU-650W-BRONZE','GPU-RTX4060-8G','ACC-CABLES-MOD');                 esperado = 'OK' }
 )
 
 $creadas = @()

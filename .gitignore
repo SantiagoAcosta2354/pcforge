@@ -14,6 +14,8 @@
 !/arrancar-pcforge.ps1
 !/cargar-catalogo.ps1
 !/verificar-compatibilidad.ps1
+!/datos-catalogo.ps1
+!/generar-seeder.ps1
 
 # --- Credenciales: nunca al repositorio ---
 # Cada microservicio lee ./config/application.properties, que contiene la cadena
