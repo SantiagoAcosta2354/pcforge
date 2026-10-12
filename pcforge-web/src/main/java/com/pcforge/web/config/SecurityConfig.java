@@ -31,7 +31,7 @@ public class SecurityConfig {
                         "/css/**", "/js/**", "/img/**", "/favicon.ico",
                         "/actuator/health/**", "/actuator/health", "/actuator/info", "/error").permitAll()
                 // El inventario solo lo gestiona el administrador.
-                .requestMatchers("/inventario/**").hasRole("ADMIN")
+                .requestMatchers("/inventario/**", "/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginPage("/login")

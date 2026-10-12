@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Producto')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1" th:text="${form.esNuevo()} ? 'Nuevo producto' : 'Editar producto'">Producto</h1>
+            <p class="text-muted mb-0">
+                Los campos de la ficha tecnica son los que usa el validador de compatibilidad.
+                Dejarlos vacios no es un error: el validador avisara de que no puede concluir.
+            </p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/admin/productos}">Volver al listado</a>
+    </div>
+
+    <form method="post"
+          th:object="${form}"
+          th:action="${form.esNuevo()} ? @{/admin/productos} : @{/admin/productos/{id}(id=${form.id})}">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="card mt-4">
+            <div class="card-header fw-semibold">Datos generales</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="sku">SKU <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" id="sku" th:field="*{sku}" maxlength="40" required/>
+                        <div class="form-text">Se guarda en mayusculas y no puede repetirse.</div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <label class="form-label" for="name">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" id="name" th:field="*{name}" maxlength="140" required/>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="brand">Marca</label>
+                        <input class="form-control" type="text" id="brand" th:field="*{brand}" maxlength="80"/>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="categoryId">Categoria <span class="text-danger">*</span></label>
+                        <select class="form-select" id="categoryId" th:field="*{categoryId}" required>
+                            <option value="">Elija una categoria</option>
+                            <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.name}">Categoria</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="componentType">Tipo de componente <span class="text-danger">*</span></label>
+                        <select class="form-select" id="componentType" th:field="*{componentType}" required>
+                            <option value="">Elija el tipo</option>
+                            <option th:each="clave : ${etiquetasComponente.keySet()}"
+                                    th:value="${clave}"
+                                    th:text="${etiquetasComponente.get(clave)}">Tipo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="description">Descripcion</label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="3" maxlength="600"></textarea>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="price">Precio <span class="text-danger">*</span></label>
+                        <input class="form-control" type="number" id="price" th:field="*{price}" step="0.01" min="0" required/>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="stock">Existencia</label>
+                        <input class="form-control" type="number" id="stock" th:field="*{stock}" min="0"/>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="minimumStock">Minimo de existencia</label>
+                        <input class="form-control" type="number" id="minimumStock" th:field="*{minimumStock}" min="0"/>
+                        <div class="form-text">Genera la alerta del inventario.</div>
+                    </div>
+                    <div class="col-6 col-md-3 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="active" th:field="*{active}"/>
+                            <label class="form-check-label" for="active">Activo en la tienda</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header fw-semibold">Ficha tecnica</div>
+            <div class="card-body">
+                <div class="alert alert-info small mb-3">
+                    Solo hace falta rellenar lo que el componente declare de verdad. Una placa base
+                    no tiene consumo propio, y una fuente de poder no tiene socket: dejar esos campos
+                    vacios es lo correcto.
+                </div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="socket">Socket</label>
+                        <input class="form-control" type="text" id="socket" th:field="*{socket}" placeholder="AM5, LGA1700..."/>
+                        <div class="form-text">Procesadores y placas base.</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="ramType">Tipo de memoria</label>
+                        <input class="form-control" type="text" id="ramType" th:field="*{ramType}" placeholder="DDR5"/>
+                        <div class="form-text">Modulos de memoria.</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="ramTypeSupported">Tipos de memoria admitidos</label>
+                        <input class="form-control" type="text" id="ramTypeSupported" th:field="*{ramTypeSupported}" placeholder="DDR4, DDR5"/>
+                        <div class="form-text">Placas base. Separe varios con comas.</div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="estimatedPowerW">Consumo estimado (W)</label>
+                        <input class="form-control" type="number" id="estimatedPowerW" th:field="*{estimatedPowerW}" min="0"/>
+                        <div class="form-text">Procesadores, graficas, memoria y almacenamiento.</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="capacityW">Capacidad de la fuente (W)</label>
+                        <input class="form-control" type="number" id="capacityW" th:field="*{capacityW}" min="0"/>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="formFactor">Formato</label>
+                        <input class="form-control" type="text" id="formFactor" th:field="*{formFactor}" placeholder="ATX, microATX, Mini-ITX"/>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="extra">Ficha informativa adicional</label>
+                        <textarea class="form-control" id="extra" th:field="*{extra}" rows="4"
+                                  placeholder="Nucleos=8&#10;Hilos=16&#10;Frecuencia turbo=5.0 GHz"></textarea>
+                        <div class="form-text">
+                            Una linea por dato, con el formato <code>clave=valor</code>.
+                            La clave no puede llevar puntos (por ejemplo, use <code>Ranuras M2</code> en lugar de
+                            <code>Ranuras M.2</code>), porque la base de datos no los admite en nombres de campo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-primary" type="submit"
+                    th:text="${form.esNuevo()} ? 'Crear producto' : 'Guardar cambios'">Guardar</button>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/productos}">Cancelar</a>
+        </div>
+    </form>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

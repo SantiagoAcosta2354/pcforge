@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categoria')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1" th:text="${form.esNueva()} ? 'Nueva categoria' : 'Editar categoria'">Categoria</h1>
+            <p class="text-muted mb-0">El identificador es el que aparece en las direcciones del catalogo.</p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/admin/categorias}">Volver al listado</a>
+    </div>
+
+    <form method="post"
+          th:object="${form}"
+          th:action="${form.esNueva()} ? @{/admin/categorias} : @{/admin/categorias/{id}(id=${form.id})}">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="card mt-4" style="max-width: 44rem;">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-7">
+                        <label class="form-label" for="name">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" id="name" th:field="*{name}" maxlength="80" required/>
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label" for="slug">Identificador <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" id="slug" th:field="*{slug}" maxlength="80" required/>
+                        <div class="form-text">Se guarda en minusculas y con guiones.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="description">Descripcion</label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="3" maxlength="300"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="active" th:field="*{active}"/>
+                            <label class="form-check-label" for="active">Categoria activa</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-primary" type="submit"
+                    th:text="${form.esNueva()} ? 'Crear categoria' : 'Guardar cambios'">Guardar</button>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/categorias}">Cancelar</a>
+        </div>
+    </form>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
