@@ -23,6 +23,8 @@ la que usa el personal de la tienda para atender los pedidos.
 | `/pedidos` | Autenticado | Pedidos propios; el personal ve los de todos los clientes |
 | `/pedidos/{id}` | Dueño o personal | Detalle, historial de estados, observaciones y cambios de estado |
 | `/inventario` | ADMIN | Existencias, alertas de minimo y registro de movimientos |
+| `/admin/productos` | ADMIN | Gestion del catalogo: alta, edicion y activacion de productos |
+| `/admin/categorias` | ADMIN | Gestion de categorias: alta, edicion y activacion |
 | `/acceso-denegado` | Autenticado | Pantalla que se muestra cuando el perfil no tiene permiso para la ruta |
 
 ## Como se maneja la sesion y el token
