@@ -77,15 +77,35 @@ public class PcforgeUserDetails implements UserDetails {
         return isAdmin();
     }
 
-    /** Etiqueta legible del perfil, para mostrarla en la interfaz. */
+    /** Gobierna el dato tecnico del catalogo: atributos, fuentes y fichas. */
+    public boolean isCatalogCurator() {
+        return isAdmin() || hasRole("CURADOR");
+    }
+
+    /** Define la politica de margen y consulta las referencias bajo el minimo. */
+    public boolean isPricingAnalyst() {
+        return isAdmin() || hasRole("ANALISTA");
+    }
+
+    /**
+     * Etiqueta legible del perfil, para mostrarla en la interfaz.
+     * Se evalua del perfil mas especifico al mas general: un administrador
+     * tambien es personal comercial, pero la etiqueta debe decir su perfil.
+     */
     public String getRoleLabel() {
-        if (isAdmin()) {
+        if (hasRole("ADMIN")) {
             return "Administrador";
         }
-        if (isCommercialStaff()) {
+        if (hasRole("CURADOR")) {
+            return "Curador de datos tecnicos";
+        }
+        if (hasRole("ANALISTA")) {
+            return "Analista de precios y margenes";
+        }
+        if (hasRole("ASESOR")) {
             return "Asesor comercial";
         }
-        if (isTechnician()) {
+        if (hasRole("TECNICO")) {
             return "Tecnico de ensamblaje";
         }
         return "Cliente";

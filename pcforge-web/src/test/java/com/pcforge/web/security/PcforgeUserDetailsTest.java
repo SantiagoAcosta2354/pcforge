@@ -46,6 +46,21 @@ class PcforgeUserDetailsTest {
         assertThat(usuarioCon("ASESOR").getRoleLabel()).isEqualTo("Asesor comercial");
         assertThat(usuarioCon("TECNICO").getRoleLabel()).isEqualTo("Tecnico de ensamblaje");
         assertThat(usuarioCon("CLIENTE").getRoleLabel()).isEqualTo("Cliente");
+        assertThat(usuarioCon("CURADOR").getRoleLabel()).isEqualTo("Curador de datos tecnicos");
+        assertThat(usuarioCon("ANALISTA").getRoleLabel()).isEqualTo("Analista de precios y margenes");
+    }
+
+    @Test
+    @DisplayName("Los perfiles de curador y analista no heredan permisos comerciales ni de inventario")
+    void shouldNotGrantCommercialOrInventoryPowersToNewRoles() {
+        assertThat(usuarioCon("CURADOR").isCatalogCurator()).isTrue();
+        assertThat(usuarioCon("CURADOR").isPricingAnalyst()).isFalse();
+        assertThat(usuarioCon("CURADOR").isCommercialStaff()).isFalse();
+        assertThat(usuarioCon("CURADOR").isInventoryManager()).isFalse();
+
+        assertThat(usuarioCon("ANALISTA").isPricingAnalyst()).isTrue();
+        assertThat(usuarioCon("ANALISTA").isCatalogCurator()).isFalse();
+        assertThat(usuarioCon("ANALISTA").isCommercialStaff()).isFalse();
     }
 
     @Test
