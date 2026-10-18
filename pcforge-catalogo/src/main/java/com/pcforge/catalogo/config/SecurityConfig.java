@@ -39,6 +39,9 @@ public class SecurityConfig {
                 // --- publico: salud, documentacion y consulta del catalogo ---
                 .requestMatchers("/actuator/health/**", "/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // La raiz redirige a la documentacion; sin esta regla devolveria 401
+                // y pareceria que el servicio no esta disponible.
+                .requestMatchers(HttpMethod.GET, "/").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**", "/api/v1/categories/**").permitAll()
 
                 // --- existencias: el consumo ocurre en la linea de ensamblaje ---
