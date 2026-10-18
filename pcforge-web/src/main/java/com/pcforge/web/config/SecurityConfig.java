@@ -32,6 +32,10 @@ public class SecurityConfig {
                         "/actuator/health/**", "/actuator/health", "/actuator/info", "/error").permitAll()
                 // El inventario solo lo gestiona el administrador.
                 .requestMatchers("/inventario/**", "/admin/**").hasRole("ADMIN")
+                // El curador gobierna el dato tecnico y el analista la politica
+                // de margen. El administrador conserva acceso a ambas areas.
+                .requestMatchers("/calidad/**").hasAnyRole("CURADOR", "ADMIN")
+                .requestMatchers("/precios/**").hasAnyRole("ANALISTA", "ADMIN")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginPage("/login")

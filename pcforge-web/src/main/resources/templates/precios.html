@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Precios y margenes')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <h1 class="h3 fw-bold mb-1">Precios y margenes</h1>
+    <p class="text-muted">
+        La politica fija el margen minimo de cada categoria. El precio del dia a dia lo mantiene
+        el administrador; aqui se decide la regla que ese precio debe respetar.
+    </p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Referencias fuera de politica</div>
+                    <div class="h3 mb-0 fw-bold text-danger" th:text="${alertas}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Categorias con politica</div>
+                    <div class="h3 mb-0 fw-bold" th:text="${politicas.size()}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Vista</div>
+                    <div class="btn-group btn-group-sm mt-2" role="group">
+                        <a class="btn" th:classappend="${soloAlertas} ? 'btn-primary' : 'btn-outline-secondary'"
+                           th:href="@{/precios(soloAlertas=true)}">Solo alertas</a>
+                        <a class="btn" th:classappend="${!soloAlertas} ? 'btn-primary' : 'btn-outline-secondary'"
+                           th:href="@{/precios(soloAlertas=false)}">Todo el catalogo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Politica por categoria -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5 fw-semibold mb-1">Politica por categoria</h2>
+            <p class="text-muted small">
+                El margen se calcula sobre el precio de venta. El umbral es el descuento que un
+                asesor puede aplicar sin aprobacion.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 datos">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Categoria</th>
+                        <th class="text-center" style="width: 9rem;">Margen minimo %</th>
+                        <th class="text-center" style="width: 9rem;">Umbral descuento %</th>
+                        <th class="text-muted small">Ultimo cambio</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${politicas}">
+                        <td>
+                            <div class="small fw-semibold" th:text="${p.categoryName}">Categoria</div>
+                            <div class="text-muted small" th:if="${p.policySource == 'global'}">Sin politica propia: aplica la global</div>
+                        </td>
+                        <td class="text-center">
+                            <!-- Los campos se asocian al formulario por id: un form no puede
+                                 envolver celdas de una tabla sin romper el HTML. -->
+                            <input class="form-control form-control-sm text-center" name="minimumMargin"
+                                   type="number" step="0.5" min="0" max="90" required
+                                   th:attr="form='pol-' + ${p.categoryId}"
+                                   th:value="${p.minimumMargin}"/>
+                        </td>
+                        <td class="text-center">
+                            <input class="form-control form-control-sm text-center" name="discountThreshold"
+                                   type="number" step="0.5" min="0" max="100" required
+                                   th:attr="form='pol-' + ${p.categoryId}"
+                                   th:value="${p.discountThreshold}"/>
+                        </td>
+                        <td class="text-muted small">
+                            <span th:if="${p.policyUpdatedAt != null}"
+                                  th:text="${#temporals.format(p.policyUpdatedAt, 'dd/MM/yyyy HH:mm')}">-</span>
+                            <span th:if="${p.policyUpdatedAt == null}">Por defecto</span>
+                            <div class="text-muted" th:if="${p.policyUpdatedBy != null}"
+                                 th:text="${p.policyUpdatedBy}">-</div>
+                        </td>
+                        <td class="text-end">
+                            <form method="post" th:id="'pol-' + ${p.categoryId}"
+                                  th:action="@{'/precios/politica/' + ${p.categoryId}}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Guardar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referencias y su margen -->
+    <h2 class="h5 fw-semibold mb-2">Margen por referencia</h2>
+
+    <div class="alert alert-success" th:if="${margenes.isEmpty()}">
+        No hay referencias fuera de politica con el criterio actual.
+    </div>
+
+    <div class="card" th:if="${!margenes.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-hover datos mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th class="text-end">Costo</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-center">Margen</th>
+                    <th class="text-center">Minimo</th>
+                    <th class="text-center">Brecha</th>
+                    <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${margenes}">
+                    <td>
+                        <div class="small fw-semibold" th:text="${m.name}">Producto</div>
+                        <div class="text-muted small" th:text="${m.sku}">SKU</div>
+                    </td>
+                    <td class="small text-muted" th:text="${m.categoryName}">Categoria</td>
+                    <td class="text-end small"
+                        th:text="${m.cost != null ? '$ ' + #numbers.formatDecimal(m.cost, 1, 'POINT', 0, 'COMMA') : '-'}">-</td>
+                    <td class="text-end small"
+                        th:text="${m.price != null ? '$ ' + #numbers.formatDecimal(m.price, 1, 'POINT', 0, 'COMMA') : '-'}">-</td>
+                    <td class="text-center fw-semibold"
+                        th:classappend="${m.status == 'CONFORME'} ? 'text-success' : 'text-danger'"
+                        th:text="${m.marginPercentage != null
+                                    ? #numbers.formatDecimal(m.marginPercentage, 1, 1) + ' %' : '-'}">0 %</td>
+                    <td class="text-center text-muted small"
+                        th:text="${m.minimumMargin != null
+                                    ? #numbers.formatDecimal(m.minimumMargin, 1, 1) + ' %' : '-'}">0 %</td>
+                    <td class="text-center small"
+                        th:text="${m.gap != null ? #numbers.formatDecimal(m.gap, 1, 1) + ' pp' : '-'}">0 pp</td>
+                    <td>
+                        <span class="badge text-bg-danger" th:if="${m.status == 'BAJO_MARGEN'}">Bajo margen</span>
+                        <span class="badge text-bg-warning text-dark" th:if="${m.status == 'SIN_COSTO'}">Sin costo</span>
+                        <span class="badge text-bg-success" th:if="${m.status == 'CONFORME'}">Conforme</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        El costo lo registra el administrador; el analista no puede modificarlo. Esa separacion
+        evita que quien fija la politica ajuste tambien el dato que la alimenta.
+    </p>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

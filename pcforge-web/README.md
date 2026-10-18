@@ -25,6 +25,9 @@ la que usa el personal de la tienda para atender los pedidos.
 | `/inventario` | ADMIN | Existencias, alertas de minimo y registro de movimientos |
 | `/admin/productos` | ADMIN | Gestion del catalogo: alta, edicion y activacion de productos |
 | `/admin/categorias` | ADMIN | Gestion de categorias: alta, edicion y activacion |
+| `/calidad` | CURADOR, ADMIN | Bandeja de fichas incompletas, cobertura del catalogo y atributos que mas faltan |
+| `/calidad/{id}` | CURADOR, ADMIN | Atributos tecnicos del producto, fuente del dato y trazabilidad de la ficha |
+| `/precios` | ANALISTA, ADMIN | Politica de margen por categoria y referencias por debajo del minimo |
 | `/acceso-denegado` | Autenticado | Pantalla que se muestra cuando el perfil no tiene permiso para la ruta |
 
 ## Como se maneja la sesion y el token

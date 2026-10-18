@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Datos tecnicos')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<main class="container py-4">
+
+    <h1 class="h3 fw-bold mb-1">Datos tecnicos</h1>
+    <p class="text-muted">
+        El validador de compatibilidad solo puede concluir si los atributos obligatorios estan
+        declarados y tienen fuente. Esta bandeja muestra lo que falta.
+    </p>
+
+    <!-- Indicadores de cobertura -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Productos</div>
+                    <div class="h3 mb-0 fw-bold" th:text="${cobertura.totalProducts}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Fichas completas</div>
+                    <div class="h3 mb-0 fw-bold text-success" th:text="${cobertura.completeSheets}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Fichas incompletas</div>
+                    <div class="h3 mb-0 fw-bold text-warning" th:text="${cobertura.incompleteSheets}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Cobertura del catalogo</div>
+                    <div class="h3 mb-0 fw-bold"
+                         th:text="${#numbers.formatDecimal(cobertura.coveragePercentage, 1, 2)} + ' %'">0 %</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+        <h2 class="h5 fw-semibold mb-0">Bandeja de fichas</h2>
+        <div class="btn-group btn-group-sm" role="group">
+            <a class="btn" th:classappend="${!sinFuente} ? 'btn-primary' : 'btn-outline-secondary'"
+               th:href="@{/calidad(sinFuente=false)}">Solo faltantes</a>
+            <a class="btn" th:classappend="${sinFuente} ? 'btn-primary' : 'btn-outline-secondary'"
+               th:href="@{/calidad(sinFuente=true)}">Incluir sin fuente</a>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${pendientes.isEmpty()}">
+        No hay fichas pendientes con este criterio. Todo lo que necesita el configurador esta declarado.
+    </div>
+
+    <div class="card" th:if="${!pendientes.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-hover datos mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th>Tipo</th>
+                    <th>Atributos faltantes</th>
+                    <th class="text-center">Efecto</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pendientes}">
+                    <td>
+                        <div class="small fw-semibold" th:text="${p.name}">Producto</div>
+                        <div class="text-muted small" th:text="${p.sku}">SKU</div>
+                    </td>
+                    <td class="small text-muted" th:text="${p.categoryName}">Categoria</td>
+                    <td class="small text-muted"
+                        th:text="${etiquetasComponente.getOrDefault(p.componentType, p.componentType)}">Tipo</td>
+                    <td>
+                        <span class="badge text-bg-warning text-dark me-1"
+                              th:each="falta : ${p.missingLabels}" th:text="${falta}">falta</span>
+                        <span class="badge text-bg-light text-dark border me-1"
+                              th:each="sinFuente : ${p.attributesWithoutSource}"
+                              th:text="${sinFuente} + ' sin fuente'">sin fuente</span>
+                        <span class="text-muted small" th:if="${p.missingLabels.isEmpty() and p.attributesWithoutSource.isEmpty()}">
+                            Ninguno
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge text-bg-danger" th:if="${p.blocksCompatibility}">Bloquea</span>
+                        <span class="badge text-bg-secondary" th:if="${!p.blocksCompatibility}">Informativo</span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary"
+                           th:href="@{'/calidad/' + ${p.id}}">Completar</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-4">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h6 fw-semibold">Cobertura por categoria</h3>
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                        <tr th:each="c : ${cobertura.byCategory}">
+                            <td class="small" th:text="${c.categoryName}">Categoria</td>
+                            <td class="small text-muted text-end"
+                                th:text="${c.completeSheets} + ' de ' + ${c.totalProducts}">0</td>
+                            <td class="text-end" style="width: 6rem;"
+                                th:text="${#numbers.formatDecimal(c.coveragePercentage, 1, 0)} + ' %'">0 %</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h6 fw-semibold">Atributos que mas faltan</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex justify-content-between border-bottom py-1"
+                            th:each="a : ${cobertura.topMissingAttributes}">
+                            <span class="small" th:text="${a.label}">Atributo</span>
+                            <span class="badge text-bg-light text-dark border"
+                                  th:text="${a.productsAffected} + ' productos'">0</span>
+                        </li>
+                    </ul>
+                    <p class="text-muted small mb-0 mt-2" th:if="${cobertura.topMissingAttributes.isEmpty()}">
+                        No hay atributos pendientes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-muted small mt-3">
+        El curador no modifica precio ni existencia: si intenta entrar a
+        <a th:href="@{/inventario}">inventario</a>, el sistema se lo impide.
+    </p>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

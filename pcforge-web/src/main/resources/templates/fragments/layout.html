@@ -38,6 +38,12 @@
                 <li class="nav-item" th:if="${usuario != null and usuario.admin}">
                     <a class="nav-link" th:href="@{/admin/productos}">Gestion</a>
                 </li>
+                <li class="nav-item" th:if="${usuario != null and usuario.catalogCurator}">
+                    <a class="nav-link" th:href="@{/calidad}">Datos tecnicos</a>
+                </li>
+                <li class="nav-item" th:if="${usuario != null and usuario.pricingAnalyst}">
+                    <a class="nav-link" th:href="@{/precios}">Precios</a>
+                </li>
             </ul>
 
             <ul class="navbar-nav">
