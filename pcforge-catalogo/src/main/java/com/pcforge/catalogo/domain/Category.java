@@ -1,5 +1,7 @@
 package com.pcforge.catalogo.domain;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -26,6 +28,18 @@ public class Category {
     @Size(max = 300)
     private String description;
     private boolean active;
+    /**
+     * Margen minimo que la politica comercial exige para esta categoria,
+     * expresado en porcentaje sobre el precio de venta.
+     */
+    private BigDecimal margenMinimo;
+    /**
+     * Descuento maximo que un asesor puede aplicar sin aprobacion, en porcentaje.
+     */
+    private BigDecimal umbralDescuento;
+    /** Responsable y fecha del ultimo cambio de politica, para la trazabilidad. */
+    private String policyUpdatedBy;
+    private Instant policyUpdatedAt;
 
     private static boolean $default$active() {
         return true;
@@ -158,6 +172,46 @@ public class Category {
 
     public void setActive(final boolean active) {
         this.active = active;
+    }
+
+    /**
+     * Margen minimo exigido por la politica comercial, en porcentaje.
+     */
+
+    public BigDecimal getMargenMinimo() {
+        return this.margenMinimo;
+    }
+
+    /**
+     * Descuento maximo sin aprobacion, en porcentaje.
+     */
+
+    public BigDecimal getUmbralDescuento() {
+        return this.umbralDescuento;
+    }
+
+    public String getPolicyUpdatedBy() {
+        return this.policyUpdatedBy;
+    }
+
+    public Instant getPolicyUpdatedAt() {
+        return this.policyUpdatedAt;
+    }
+
+    public void setMargenMinimo(final BigDecimal margenMinimo) {
+        this.margenMinimo = margenMinimo;
+    }
+
+    public void setUmbralDescuento(final BigDecimal umbralDescuento) {
+        this.umbralDescuento = umbralDescuento;
+    }
+
+    public void setPolicyUpdatedBy(final String policyUpdatedBy) {
+        this.policyUpdatedBy = policyUpdatedBy;
+    }
+
+    public void setPolicyUpdatedAt(final Instant policyUpdatedAt) {
+        this.policyUpdatedAt = policyUpdatedAt;
     }
 
     @java.lang.Override

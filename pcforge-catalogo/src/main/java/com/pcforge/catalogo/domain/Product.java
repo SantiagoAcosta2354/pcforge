@@ -2,6 +2,7 @@ package com.pcforge.catalogo.domain;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -51,6 +52,22 @@ public class Product {
     private int minimumStock;
     private boolean active;
     private TechnicalSpecs specs;
+    /**
+     * Costo de adquisicion del producto. No se expone en la API publica: solo lo
+     * consulta el perfil de precios y margenes para calcular la rentabilidad.
+     */
+    private BigDecimal costo;
+    /**
+     * Fuente y fecha de verificacion de cada atributo tecnico obligatorio.
+     * La clave es el nombre del atributo (socket, ramType, capacityW...).
+     */
+    private Map<String, AttributeSource> attributeSources;
+    /**
+     * Momento en que el curador declaro la ficha completa. Si despues se retira
+     * un atributo obligatorio, la ficha vuelve a incompleta y esta marca se limpia.
+     */
+    private Instant verifiedAt;
+    private String verifiedBy;
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate
@@ -375,6 +392,46 @@ public class Product {
 
     public void setSpecs(final TechnicalSpecs specs) {
         this.specs = specs;
+    }
+
+    /**
+     * Costo de adquisicion, base del calculo de margen.
+     */
+
+    public BigDecimal getCosto() {
+        return this.costo;
+    }
+
+    /**
+     * Fuente y fecha de verificacion de cada atributo tecnico obligatorio.
+     */
+
+    public Map<String, AttributeSource> getAttributeSources() {
+        return this.attributeSources;
+    }
+
+    public Instant getVerifiedAt() {
+        return this.verifiedAt;
+    }
+
+    public String getVerifiedBy() {
+        return this.verifiedBy;
+    }
+
+    public void setCosto(final BigDecimal costo) {
+        this.costo = costo;
+    }
+
+    public void setAttributeSources(final Map<String, AttributeSource> attributeSources) {
+        this.attributeSources = attributeSources;
+    }
+
+    public void setVerifiedAt(final Instant verifiedAt) {
+        this.verifiedAt = verifiedAt;
+    }
+
+    public void setVerifiedBy(final String verifiedBy) {
+        this.verifiedBy = verifiedBy;
     }
 
     public void setCreatedAt(final Instant createdAt) {

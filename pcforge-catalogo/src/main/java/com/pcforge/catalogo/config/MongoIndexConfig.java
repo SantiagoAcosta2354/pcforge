@@ -32,6 +32,7 @@ public class MongoIndexConfig {
         return args -> {
             mongoTemplate.indexOps(Product.class).ensureIndex(new Index().on("sku", Sort.Direction.ASC).unique().named("uk_products_sku"));
             mongoTemplate.indexOps(Product.class).ensureIndex(new Index().on("componentType", Sort.Direction.ASC).named("ix_products_component_type"));
+            mongoTemplate.indexOps(Product.class).ensureIndex(new Index().on("categoryId", Sort.Direction.ASC).named("ix_products_category"));
             mongoTemplate.indexOps(Category.class).ensureIndex(new Index().on("slug", Sort.Direction.ASC).unique().named("uk_categories_slug"));
             mongoTemplate.indexOps(StockMovement.class).ensureIndex(new Index().on("productId", Sort.Direction.ASC).named("ix_stock_movements_product"));
             log.info("Indices de MongoDB verificados correctamente");
