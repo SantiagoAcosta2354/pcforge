@@ -82,6 +82,7 @@ y cambiar los enlaces de `templates/fragments/layout.html`.
 mvn clean test
 ```
 
-Diez pruebas sobre la traduccion de roles a autoridades, las etiquetas de cada
-perfil y el proveedor de autenticacion (credenciales validas, incorrectas y
-servicio no disponible).
+Once pruebas sobre la traduccion de roles a autoridades, las etiquetas de cada
+perfil —incluidos curador de datos tecnicos y analista de precios y margenes— y
+el proveedor de autenticacion (credenciales validas, incorrectas y servicio no
+disponible).

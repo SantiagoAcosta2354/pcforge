@@ -36,6 +36,28 @@ datos y reglas por API REST, y el quinto es la capa web que el usuario ve.
 Cada modulo es un proyecto Maven independiente y tiene su propio README con el
 detalle de endpoints, variables y reglas.
 
+## Roles del dominio
+
+Son **seis** perfiles y viajan en el claim `roles` del token que emite
+`pcforge-usuarios`. Cada microservicio los exige en el servidor; ocultar un
+elemento en la pantalla no protege una ruta.
+
+| Rol | Alcance |
+|---|---|
+| `CLIENTE` | Catalogo publico, configuracion del equipo y pedidos propios |
+| `ASESOR` | Solicitudes, disponibilidad y cotizaciones |
+| `TECNICO` | Ordenes de ensamblaje, lista de comprobacion y etapas |
+| `ADMIN` | Cuentas, roles, catalogo, costo de adquisicion y existencias |
+| `CURADOR` | Atributos tecnicos, fuente del dato y fichas completas (`/api/v1/catalog-quality`) |
+| `ANALISTA` | Politica de margen por categoria y alertas de margen (`/api/v1/pricing`) |
+
+Un rol **no** crea un microservicio: es autorizacion dentro del servicio que ya
+es dueño del dato. El curador y el analista trabajan sobre informacion del
+Catalogo, asi que sus rutas viven ahi. La separacion de funciones es deliberada:
+el costo lo registra `ADMIN`, de modo que quien fija la politica de margen no
+captura el dato que esa politica controla, y el curador no puede escribir precio
+ni existencia.
+
 ## Como funciona la sesion
 
 La capa web **no valida el login**: envia las credenciales al servicio de usuarios
@@ -80,8 +102,9 @@ Arrancar en el orden que se quiera, desde el directorio de cada modulo:
 ./mvnw spring-boot:run
 ```
 
-El servicio de usuarios crea las cuentas de demostracion la primera vez, solo si
-la base esta vacia:
+El servicio de usuarios comprueba **cuenta por cuenta**: crea la que falte y no
+duplica la que ya existe. Esa decision permite agregar un rol nuevo al sistema
+sin tener que vaciar la base para que aparezca su cuenta de prueba.
 
 | Correo | Rol | Contrasena |
 |---|---|---|
@@ -89,6 +112,8 @@ la base esta vacia:
 | `asesor@pcforge.co` | ASESOR | `Demo1234*` |
 | `tecnico@pcforge.co` | TECNICO | `Demo1234*` |
 | `cliente@pcforge.co` | CLIENTE | `Demo1234*` |
+| `curador@pcforge.co` | CURADOR | `Demo1234*` |
+| `analista@pcforge.co` | ANALISTA | `Demo1234*` |
 
 La cuenta de administrador no lleva contrasena por defecto publicada: al desplegar
 en un entorno accesible desde internet hay que fijar `PCFORGE_ADMIN_PASSWORD` o,
@@ -129,32 +154,37 @@ al servicio de usuarios. La capa web no lo necesita, solo reenvia el token.
 ./mvnw clean test
 ```
 
-49 pruebas unitarias en total, sin necesidad de una base de datos en ejecucion:
+61 pruebas unitarias en total, sin necesidad de una base de datos en ejecucion:
 
 | Modulo | Pruebas |
 |---|---|
-| `pcforge-usuarios` | 8 |
-| `pcforge-catalogo` | 8 |
+| `pcforge-usuarios` | 9 |
+| `pcforge-catalogo` | 18 |
 | `pcforge-compatibilidad` | 11 |
 | `pcforge-pedidos` | 12 |
-| `pcforge-web` | 10 |
+| `pcforge-web` | 11 |
 
 ## Despliegue en Render
 
 Son **cinco servicios web** independientes dentro de un mismo proyecto de Render.
 
-1. Crear el proyecto y conectar este repositorio de GitHub.
+1. Crear el proyecto y conectar este repositorio de GitHub. El archivo
+   `render.yaml` declara los cinco servicios, de modo que el camino corto es
+   sincronizar ese Blueprint.
 2. Crear los cuatro microservicios **primero** (usuarios, catalogo, compatibilidad,
    pedidos), con esta configuracion:
 
    | Ajuste | Valor |
    |---|---|
-   | Runtime | Java |
+   | Runtime | Docker |
    | Root Directory | `pcforge-<modulo>` |
-   | Build Command | `./mvnw -B clean package -DskipTests` |
-   | Start Command | `java -jar target/pcforge-<modulo>-0.0.1-SNAPSHOT.jar` |
+   | Dockerfile Path | `pcforge-<modulo>/Dockerfile` |
    | Health Check Path | `/actuator/health` |
    | Instance Type | Free |
+
+   Cada modulo trae su `Dockerfile` de dos etapas (compilacion con Maven y
+   ejecucion sobre JRE 21), asi que Render no necesita comandos de build ni de
+   arranque: los toma de la imagen.
 
 3. Anotar la URL publica que Render asigna a cada uno y usarla en las variables de
    entorno de los servicios que dependen de ellos.
