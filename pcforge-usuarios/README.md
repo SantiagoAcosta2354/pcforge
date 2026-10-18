@@ -21,7 +21,10 @@ Es el unico servicio que firma los JWT; los demas solo los validan.
 
 ## Cuentas de demostracion
 
-Se crean una sola vez, si la base no tiene usuarios:
+El cargador comprueba cuenta por cuenta, no "la base esta vacia": si un correo
+ya existe no lo duplica, y si falta lo crea. Asi, al agregar un rol nuevo al
+sistema, su cuenta de demostracion aparece en el siguiente arranque aunque las
+demas ya estuvieran creadas.
 
 | Correo | Rol |
 |---|---|
@@ -29,8 +32,10 @@ Se crean una sola vez, si la base no tiene usuarios:
 | `asesor@pcforge.co` | ASESOR |
 | `tecnico@pcforge.co` | TECNICO |
 | `cliente@pcforge.co` | CLIENTE |
+| `curador@pcforge.co` | CURADOR |
+| `analista@pcforge.co` | ANALISTA |
 
-Las tres ultimas comparten la contrasena de demostracion.
+Todas salvo la administradora comparten la contrasena de demostracion.
 
 ## Endpoints
 
@@ -54,7 +59,7 @@ Al iniciar sesion se devuelve un JWT firmado con HS256 que contiene:
 sub    -> identificador del usuario
 email  -> correo
 name   -> nombre completo
-roles  -> ["ADMIN"] | ["ASESOR"] | ["TECNICO"] | ["CLIENTE"]
+roles  -> ["ADMIN"] | ["ASESOR"] | ["TECNICO"] | ["CLIENTE"] | ["CURADOR"] | ["ANALISTA"]
 iss    -> pcforge-usuarios
 exp    -> fecha de expiracion
 ```

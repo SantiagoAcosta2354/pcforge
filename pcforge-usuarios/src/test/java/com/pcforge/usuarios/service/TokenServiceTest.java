@@ -66,6 +66,24 @@ class TokenServiceTest {
     }
 
     @Test
+    @DisplayName("Los roles de curador y analista viajan en el token como cualquier otro")
+    void shouldIssueTokenWithCatalogQualityAndPricingRoles() {
+        User curador = User.builder()
+                .id("u-curador").email("curador@pcforge.co").fullName("Curador de datos tecnicos")
+                .roles(Set.of(Role.CURADOR)).active(true).build();
+        User analista = User.builder()
+                .id("u-analista").email("analista@pcforge.co").fullName("Analista de precios")
+                .roles(Set.of(Role.CURADOR, Role.ANALISTA)).active(true).build();
+
+        Jwt tokenCurador = decoder.decode(tokenService.issue(curador).accessToken());
+        Jwt tokenAnalista = decoder.decode(tokenService.issue(analista).accessToken());
+
+        assertThat(tokenCurador.getClaimAsStringList("roles")).containsExactly("CURADOR");
+        // Los roles se emiten ordenados, para que el claim sea estable entre emisiones.
+        assertThat(tokenAnalista.getClaimAsStringList("roles")).containsExactly("ANALISTA", "CURADOR");
+    }
+
+    @Test
     @DisplayName("El token incluye fecha de expiracion")
     void shouldSetExpiration() {
         User user = User.builder().id("u-1").email("a@pcforge.co").fullName("A")
